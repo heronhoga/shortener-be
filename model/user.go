@@ -19,10 +19,8 @@ type User struct {
 }
 
 type RegisterUser struct {
-	ID uuid.UUID `json:"id"`
 	Email string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Phone string `json:"phone"`
-	CreatedAt time.Time `json:"created_at"`
 }

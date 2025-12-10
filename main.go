@@ -5,9 +5,14 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/heronhoga/shortener-be/config"
-	"github.com/heronhoga/shortener-be/util"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/heronhoga/shortener-be/config"
+	"github.com/heronhoga/shortener-be/handler"
+	"github.com/heronhoga/shortener-be/middleware"
+	"github.com/heronhoga/shortener-be/repository"
+	"github.com/heronhoga/shortener-be/route"
+	"github.com/heronhoga/shortener-be/service"
+	"github.com/heronhoga/shortener-be/util"
 )
 
 func main() {
@@ -31,6 +36,17 @@ func main() {
 		AllowMethods:     "GET,POST,PUT,DELETE",
 		AllowCredentials: true,
 	}))
+
+	//api route
+	api := app.Group("/api/v1", middleware.JSONOnly(), middleware.AppKey())
+	
+	// dependencies
+	// user
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+	userRoute := route.NewUserRoute(userHandler)
+	userRoute.Register(api)
 
 	// listen
 	app.Listen(":8000")
