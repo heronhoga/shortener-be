@@ -1,0 +1,37 @@
+package main
+
+import (
+	"context"
+	"os"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/heronhoga/shortener-be/config"
+	"github.com/heronhoga/shortener-be/util"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+)
+
+func main() {
+	// load env
+	util.LoadEnv()
+
+	// create fiber app
+	app := fiber.New()
+
+	// db connect
+	db := config.ConnectDB()
+	defer db.Close(context.Background())
+
+	// front-end app
+	frontEndApp := os.Getenv("FRONTEND_APP")
+
+	// CORS config
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     frontEndApp,
+		AllowHeaders:     "Origin, Content-Type, Accept, App-Key",
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowCredentials: true,
+	}))
+
+	// listen
+	app.Listen(":8000")
+}
