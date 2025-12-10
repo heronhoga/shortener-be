@@ -27,6 +27,12 @@ func (s *UserService) RegisterNewUser(ctx context.Context, requests *model.Regis
 		return errors.New("email format is not valid")
 	}
 
+	// Validate phone number format
+	phoneRegex := regexp.MustCompile(`^\+?[0-9]{10,15}$`)
+	if !phoneRegex.MatchString(requests.Phone) {
+		return errors.New("phone number format is not valid")
+	}
+
 	// Validate password length
 	if len(requests.Password) < 8 {
 		return errors.New("password length is less than 8")
@@ -35,7 +41,7 @@ func (s *UserService) RegisterNewUser(ctx context.Context, requests *model.Regis
 	// check if there is existing email/username
 	available, err := s.repo.CheckExistingEmailUsername(ctx, requests.Email, requests.Username)
 	if err != nil {
-		return errors.New("Internal server error - query check existing email and username")
+		return errors.New("There is existing user with the email/username")
 	}
 
 	if !available {
@@ -60,7 +66,7 @@ func (s *UserService) RegisterNewUser(ctx context.Context, requests *model.Regis
 		Username: requests.Username,
 		Password: string(hashedPassword),
 		Phone: requests.Phone,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = s.repo.InsertUser(ctx, newUser)

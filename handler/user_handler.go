@@ -24,6 +24,13 @@ func (h *UserHandler) RegisterNewUser(c *fiber.Ctx) error {
 		})
 	}
 
+	// check if request part is nil
+	if req.Email == "" || req.Username == "" || req.Password == "" || req.Phone == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
 	// call service layer
 	if err := h.service.RegisterNewUser(c.Context(), &req); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -31,7 +38,7 @@ func (h *UserHandler) RegisterNewUser(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "ok",
 	})
 }
