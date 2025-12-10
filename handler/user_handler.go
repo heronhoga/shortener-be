@@ -42,3 +42,44 @@ func (h *UserHandler) RegisterNewUser(c *fiber.Ctx) error {
 		"message": "ok",
 	})
 }
+
+func (h *UserHandler) LoginUser(c *fiber.Ctx) error {
+    var req model.LoginUser
+
+    if err := c.BodyParser(&req); err != nil {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "error": "Invalid request body",
+        })
+    }
+
+    if req.Provider == "" {
+        req.Provider = "local"
+    }
+
+    if req.Provider == "local" {
+        if req.Email == "" || req.Password == "" {
+            return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                "error": "Email and password are required",
+            })
+        }
+    }
+
+    if req.Provider == "google" {
+        if req.Token == "" {
+            return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                "error": "Google token is required",
+            })
+        }
+    }
+
+    token, err := h.service.LoginUser(c.Context(), &req)
+    if err != nil {
+        return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+            "error": err.Error(),
+        })
+    }
+
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
+        "token": token,
+    })
+}

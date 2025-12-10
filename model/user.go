@@ -24,3 +24,10 @@ type RegisterUser struct {
 	Password string `json:"password"`
 	Phone string `json:"phone"`
 }
+
+type LoginUser struct {
+	Email string `json:"email"`
+	Password string `json:"password"`
+    Provider string `json:"provider"`
+    Token    string `json:"token"`  
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/heronhoga/shortener-be/model"
 	"github.com/heronhoga/shortener-be/repository"
+	"github.com/heronhoga/shortener-be/util/auth"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -75,4 +76,46 @@ func (s *UserService) RegisterNewUser(ctx context.Context, requests *model.Regis
 	}
 
 	return nil
+}
+
+func (s *UserService) LoginUser(ctx context.Context, requests *model.LoginUser) (string, error) {
+	    switch requests.Provider {
+    case "local":
+        return s.loginLocal(ctx, requests.Email, requests.Password)
+    case "google":
+        return s.loginGoogle(ctx, requests.Token)
+    default:
+        return "", errors.New("unsupported login provider")
+    }
+}
+
+func (s *UserService) loginLocal(ctx context.Context, email string, password string) (string, error) {
+	user, err := s.repo.GetUserByEmail(ctx, email)
+
+	if err != nil {
+		return "", errors.New("db error - getting existing user's data")
+	}
+
+	if user == nil {
+		return "", errors.New("invalid email/password")
+	}
+
+	// compare password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return "", errors.New("invalid email/password")
+	}
+
+	// generate token
+	token, err := auth.GenerateToken(user.ID.String())
+		if err != nil {
+		return "", errors.New("error generating token")
+	}
+
+	return token, nil
+
+}
+
+func (s *UserService) loginGoogle(ctx context.Context, token string) (string, error) {
+	return "", nil
 }

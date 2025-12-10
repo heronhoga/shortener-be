@@ -16,4 +16,5 @@ func NewUserRoute(handler *handler.UserHandler) *UserRoute {
 func (r *UserRoute) Register(router fiber.Router) {
 	user := router.Group("/users")
 	user.Post("/register", r.Handler.RegisterNewUser)
+	user.Post("/login", r.Handler.LoginUser)
 }
