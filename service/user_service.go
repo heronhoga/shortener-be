@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"os"
 	"regexp"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/heronhoga/shortener-be/repository"
 	"github.com/heronhoga/shortener-be/util/auth"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/api/idtoken"
 )
 
 type UserService struct {
@@ -117,5 +119,54 @@ func (s *UserService) loginLocal(ctx context.Context, email string, password str
 }
 
 func (s *UserService) loginGoogle(ctx context.Context, token string) (string, error) {
-	return "", nil
+    payload, err := idtoken.Validate(ctx, token, os.Getenv("GOOGLE_CLIENT_ID"))
+    if err != nil {
+        return "", errors.New("invalid google token")
+    }
+
+    email, ok := payload.Claims["email"].(string)
+    if !ok || email == "" {
+        return "", errors.New("google token missing email")
+    }
+
+    // check existing user
+    user, err := s.repo.GetUserByEmail(ctx, email)
+    if err != nil {
+        return "", errors.New("db error - getting existing user")
+    }
+
+    var userID uuid.UUID
+
+    if user == nil {
+        // create new ID
+        newID, err := uuid.NewV7()
+        if err != nil {
+            return "", errors.New("failed to generate user id")
+        }
+
+        newUser := &model.User{
+            ID:        newID,
+            Email:     email,
+            Username:  email,
+            Password:  "",        
+            Phone:     "",
+            CreatedAt: time.Now().UTC(),
+        }
+
+        if err := s.repo.InsertUser(ctx, newUser); err != nil {
+            return "", errors.New("error creating new user")
+        }
+
+        userID = newID
+
+    } else {
+        userID = user.ID
+    }
+
+    jwtToken, err := auth.GenerateToken(userID.String())
+    if err != nil {
+        return "", errors.New("error generating token")
+    }
+
+    return jwtToken, nil
 }
