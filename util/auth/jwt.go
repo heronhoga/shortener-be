@@ -25,3 +25,4 @@ func GenerateToken(userId string) (string, error) {
 
 	return signedToken, nil
 }
+
