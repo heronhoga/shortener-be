@@ -22,7 +22,6 @@ func NewLinkService(repo repository.LinkRepository) *LinkService {
 func (s *LinkService) CreateShortLink(ctx context.Context, requests *model.CreateLink, userID string) error {
 	// check existing url shortener link if requests name is not null
 	if requests.Name != "" {
-
 		// check valid link name
 		isValidName := util.CheckValidLinkName(requests.Name)
 		if !isValidName {
@@ -72,6 +71,51 @@ func (s *LinkService) CreateShortLink(ctx context.Context, requests *model.Creat
 	err = s.repo.CreateNewLink(ctx, newLink)
 	if err != nil {
 		return errors.New("Error creating new short link")
+	}
+
+	return nil
+}
+
+func (s *LinkService) EditShortLink(ctx context.Context, requests *model.EditLink, userID string) error {
+	// check existing url shortener link if requests name is not null
+	if requests.Name != "" {
+		// check valid link name
+		isValidName := util.CheckValidLinkName(requests.Name)
+		if !isValidName {
+			return errors.New("Invalid short link's name")
+		}
+
+		// check existing link with the name
+		_, err := s.repo.CheckExistingLink(ctx, requests.Name)
+		if err != nil {
+			return errors.New("There's already a short link with that name")
+		}
+	}
+
+	// parse link id
+	parsedLinkID, err := uuid.Parse(requests.ID)
+		if err != nil {
+			return errors.New("Error parsing link id")
+		}
+
+	existingLink, err := s.repo.GetSpecificLinkById(ctx, parsedLinkID.String())
+	if existingLink == nil {
+		return errors.New("Link not found")
+	}
+
+	if err != nil {
+		return errors.New("Error getting link")
+	}
+
+	// map updated data
+	existingLink.Name = requests.Name
+	existingLink.Url = requests.Url
+	existingLink.UpdatedAt = time.Now().UTC()
+
+	// save
+	err = s.repo.UpdateSpecificLink(ctx, existingLink)
+	if err != nil {
+		return errors.New("Error updating link")
 	}
 
 	return nil

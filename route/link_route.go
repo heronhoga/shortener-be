@@ -17,4 +17,5 @@ func NewLinkRoute(handler *handler.LinkHandler) *LinkRoute {
 func (r *LinkRoute) Register(router fiber.Router) {
 	user := router.Group("/links")
 	user.Post("/create", middleware.VerifyToken(), r.Handler.CreateShortLink)
+	user.Put("/edit", middleware.VerifyToken(), r.Handler.EditShortLink)
 }
