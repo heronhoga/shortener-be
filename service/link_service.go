@@ -22,12 +22,20 @@ func NewLinkService(repo repository.LinkRepository) *LinkService {
 func (s *LinkService) CreateShortLink(ctx context.Context, requests *model.CreateLink, userID string) error {
 	// check existing url shortener link if requests name is not null
 	if requests.Name != "" {
+
+		// check valid link name
+		isValidName := util.CheckValidLinkName(requests.Name)
+		if !isValidName {
+			return errors.New("Invalid short link's name")
+		}
+
+		// check existing link with the name
 		_, err := s.repo.CheckExistingLink(ctx, requests.Name)
 		if err != nil {
 			return errors.New("There's already a short link with that name")
 		}
 	}
-	
+
 	// generate random url shortname
 	linkName, err := util.GenerateRandomName(10)
 	if err != nil {
