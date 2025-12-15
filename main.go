@@ -48,6 +48,13 @@ func main() {
 	userRoute := route.NewUserRoute(userHandler)
 	userRoute.Register(api)
 
+	// link
+	linkRepo := repository.NewLinkRepository(db)
+	linkService := service.NewLinkService(linkRepo)
+	linkHandler := handler.NewLinkHandler(linkService)
+	linkRoute := route.NewLinkRoute(linkHandler)
+	linkRoute.Register(api)
+
 	// listen
 	app.Listen(":8000")
 }
