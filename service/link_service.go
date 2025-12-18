@@ -120,3 +120,37 @@ func (s *LinkService) EditShortLink(ctx context.Context, requests *model.EditLin
 
 	return nil
 }
+
+func (s *LinkService) GetShortLinks(ctx context.Context, requests *model.GetLink, userID string) ([]*model.Link, error) {
+	data := []*model.Link{}
+	if requests.LinkID != "" {
+		link, err := s.repo.GetSpecificLinkById(ctx, requests.LinkID)
+		if err != nil {
+			return nil, errors.New("Error getting links")
+		}
+		data = append(data, link)
+		return data, nil
+	}
+
+	if requests.Page < 1 {
+		requests.Page = 1
+	}
+
+	// page pagination
+	totalData := 9
+	offset := (requests.Page - 1) * totalData // total data
+
+	dataQuery, err := s.repo.GetShortLinks(ctx, userID, totalData, offset)
+
+	if err != nil {
+		return nil, errors.New("Error getting links")
+	}
+
+	if dataQuery == nil {
+		return nil, errors.New("No data found")
+	}
+
+	data = append(data, dataQuery...)
+
+	return data, nil
+}

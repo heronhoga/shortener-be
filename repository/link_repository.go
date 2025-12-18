@@ -13,6 +13,7 @@ type LinkRepository interface {
 	CreateNewLink(ctx context.Context, newLink *model.Link) error
     GetSpecificLinkById(ctx context.Context, uuid string) (*model.Link, error)
     UpdateSpecificLink(ctx context.Context, existingLink *model.Link) error
+	GetShortLinks(ctx context.Context, userId string, limit int, offset int) ([]*model.Link, error)
 }
 
 type linkRepository struct {
@@ -49,8 +50,7 @@ func (r *linkRepository) CreateNewLink(ctx context.Context, newLink *model.Link)
 }
 
 func (r *linkRepository) GetSpecificLinkById(ctx context.Context, id string) (*model.Link, error) {
-
-	query := `SELECT id, user_id, name, url, created_at FROM links WHERE id = $1 LIMIT 1`
+	query := `SELECT id, user_id, name, url, created_at, updated_at FROM links WHERE id = $1 LIMIT 1`
 
 	var link model.Link
 
@@ -60,6 +60,7 @@ func (r *linkRepository) GetSpecificLinkById(ctx context.Context, id string) (*m
 		&link.Name,
 		&link.Url,
 		&link.CreatedAt,
+		&link.UpdatedAt,
 	)
 	if err != nil {
         if errors.Is(err, pgx.ErrNoRows) {
@@ -70,6 +71,45 @@ func (r *linkRepository) GetSpecificLinkById(ctx context.Context, id string) (*m
 
 	return &link, nil
 }
+
+func (r *linkRepository) GetShortLinks(ctx context.Context, userID string, limit int, offset int) ([]*model.Link, error) {
+	query := `
+		SELECT *
+		FROM links
+		WHERE user_id = $1
+		LIMIT $2 OFFSET $3
+	`
+
+	rows, err := r.db.Query(ctx, query, userID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var links []*model.Link
+
+	for rows.Next() {
+		var link model.Link
+		if err := rows.Scan(
+			&link.ID,
+			&link.UserID,
+			&link.Name,
+			&link.Url,
+			&link.CreatedAt,
+			&link.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		links = append(links, &link)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return links, nil
+}
+
 
 func (r *linkRepository) UpdateSpecificLink(ctx context.Context, existingLink *model.Link) error {
     query := `UPDATE links SET name = $1, url = $2, updated_at = $3 WHERE id = $4`

@@ -88,3 +88,30 @@ func (h *LinkHandler) EditShortLink(c *fiber.Ctx) error {
 		"message": "ok",
 	})
 }
+
+func (h *LinkHandler) GetShortLink(c *fiber.Ctx) error {
+	var req model.GetLink
+
+	req.LinkID = c.Query("linkid")
+	req.Page = c.QueryInt("page")
+
+	// get user id
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+	
+    links, err := h.service.GetShortLinks(c.Context(), &req, userID)
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "error": err.Error(),
+        })
+    }
+
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"data": links,
+	})
+}

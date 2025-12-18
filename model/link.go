@@ -25,3 +25,8 @@ type EditLink struct {
 	Name string `json:"name"`
 	Url string `json:"url"`
 }
+
+type GetLink struct {
+	LinkID string `json:"id"`
+	Page int `json:"page"`
+}
