@@ -27,6 +27,10 @@ type EditLink struct {
 }
 
 type GetLink struct {
-	LinkID string `json:"id"`
+	LinkID string `json:"link_id"`
 	Page int `json:"page"`
+}
+
+type DeleteLink struct {
+	LinkID string `json:"link_id"`
 }

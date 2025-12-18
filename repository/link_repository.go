@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/heronhoga/shortener-be/model"
@@ -14,6 +15,7 @@ type LinkRepository interface {
     GetSpecificLinkById(ctx context.Context, uuid string) (*model.Link, error)
     UpdateSpecificLink(ctx context.Context, existingLink *model.Link) error
 	GetShortLinks(ctx context.Context, userId string, limit int, offset int) ([]*model.Link, error)
+	DeleteLink(ctx context.Context, linkID string, userID string) error 
 }
 
 type linkRepository struct {
@@ -121,3 +123,18 @@ func (r *linkRepository) UpdateSpecificLink(ctx context.Context, existingLink *m
 
     return nil
 }
+
+func (r *linkRepository) DeleteLink(ctx context.Context, linkID string, userID string) error {
+	query := `DELETE FROM links WHERE id = $1 AND user_id = $2`
+	cmd, err := r.db.Exec(ctx, query, linkID, userID)
+	if err != nil {
+		return err
+	}
+
+	if cmd.RowsAffected() == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+

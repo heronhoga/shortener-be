@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -153,4 +154,15 @@ func (s *LinkService) GetShortLinks(ctx context.Context, requests *model.GetLink
 	data = append(data, dataQuery...)
 
 	return data, nil
+}
+
+func (s *LinkService) DeleteLink(ctx context.Context, linkID string, userID string) error {
+	err := s.repo.DeleteLink(ctx, linkID, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("data not found or unauthorized")
+		}
+		return err
+	}
+	return nil
 }

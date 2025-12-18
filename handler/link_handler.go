@@ -115,3 +115,34 @@ func (h *LinkHandler) GetShortLink(c *fiber.Ctx) error {
 		"data": links,
 	})
 }
+
+func (h *LinkHandler) DeleteLink(c *fiber.Ctx) error {
+	var req model.DeleteLink
+
+	// parse request body
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	// get user id
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	err := h.service.DeleteLink(c.Context(), req.LinkID, userID)
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "error": err.Error(),
+        })
+    }
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+	})
+
+}

@@ -19,4 +19,5 @@ func (r *LinkRoute) Register(router fiber.Router) {
 	link.Get("", middleware.VerifyToken(), r.Handler.GetShortLink)
 	link.Post("/create", middleware.VerifyToken(), r.Handler.CreateShortLink)
 	link.Put("/edit", middleware.VerifyToken(), r.Handler.EditShortLink)
+	link.Delete("/delete", middleware.VerifyToken(), r.Handler.DeleteLink)
 }
