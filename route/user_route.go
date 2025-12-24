@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/heronhoga/shortener-be/handler"
+	"github.com/heronhoga/shortener-be/middleware"
 )
 
 type UserRoute struct {
@@ -14,7 +15,7 @@ func NewUserRoute(handler *handler.UserHandler) *UserRoute {
 }
 
 func (r *UserRoute) Register(router fiber.Router) {
-	user := router.Group("/users")
+	user := router.Group("/users").Use(middleware.AppKey())
 	user.Post("/register", r.Handler.RegisterNewUser)
 	user.Post("/login", r.Handler.LoginUser)
 }

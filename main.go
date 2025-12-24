@@ -38,7 +38,7 @@ func main() {
 	}))
 
 	//api route
-	api := app.Group("/api/v1", middleware.JSONOnly(), middleware.AppKey())
+	api := app.Group("/api/v1", middleware.JSONOnly())
 	
 	// dependencies
 	// user
