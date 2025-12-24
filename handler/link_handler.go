@@ -25,7 +25,7 @@ func (h *LinkHandler) CreateShortLink(c *fiber.Ctx) error {
 	}
 
 	// request fields
-	if req.Url == "" {
+	if req.Url == "" || req.Label == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Url field can't be empty",
 		})
@@ -62,7 +62,7 @@ func (h *LinkHandler) EditShortLink(c *fiber.Ctx) error {
 	}
 
 	// reqyest fields
-	if req.ID == "" || req.Name == "" || req.Url == "" {
+	if req.ID == "" || req.Name == "" || req.Url == "" || req.Label == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})

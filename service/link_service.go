@@ -66,6 +66,7 @@ func (s *LinkService) CreateShortLink(ctx context.Context, requests *model.Creat
 		}(),
 		Url:       requests.Url,
 		CreatedAt: time.Now().UTC(),
+		Label: requests.Label,
 	}
 
 	// create new link
@@ -112,6 +113,7 @@ func (s *LinkService) EditShortLink(ctx context.Context, requests *model.EditLin
 	existingLink.Name = requests.Name
 	existingLink.Url = requests.Url
 	existingLink.UpdatedAt = time.Now().UTC()
+	existingLink.Label = requests.Label
 
 	// save
 	err = s.repo.UpdateSpecificLink(ctx, existingLink)

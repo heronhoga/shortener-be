@@ -45,14 +45,14 @@ func (r *linkRepository) CheckExistingLink(ctx context.Context, name string) (bo
 }
 
 func (r *linkRepository) CreateNewLink(ctx context.Context, newLink *model.Link) error {
-	query := `INSERT INTO links (id, user_id, name, url, created_at) VALUES ($1, $2, $3, $4, $5)`
+	query := `INSERT INTO links (id, user_id, name, url, created_at, label) VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := r.db.Exec(ctx, query, newLink.ID, newLink.UserID, newLink.Name, newLink.Url, newLink.CreatedAt)
+	_, err := r.db.Exec(ctx, query, newLink.ID, newLink.UserID, newLink.Name, newLink.Url, newLink.CreatedAt, newLink.Label)
 	return err
 }
 
 func (r *linkRepository) GetSpecificLinkById(ctx context.Context, id string) (*model.Link, error) {
-	query := `SELECT id, user_id, name, url, created_at, updated_at FROM links WHERE id = $1 LIMIT 1`
+	query := `SELECT id, user_id, name, url, created_at, updated_at, label FROM links WHERE id = $1 LIMIT 1`
 
 	var link model.Link
 
@@ -63,6 +63,7 @@ func (r *linkRepository) GetSpecificLinkById(ctx context.Context, id string) (*m
 		&link.Url,
 		&link.CreatedAt,
 		&link.UpdatedAt,
+		&link.Label,
 	)
 	if err != nil {
         if errors.Is(err, pgx.ErrNoRows) {
@@ -99,6 +100,7 @@ func (r *linkRepository) GetShortLinks(ctx context.Context, userID string, limit
 			&link.Url,
 			&link.CreatedAt,
 			&link.UpdatedAt,
+			&link.Label,
 		); err != nil {
 			return nil, err
 		}
@@ -114,8 +116,8 @@ func (r *linkRepository) GetShortLinks(ctx context.Context, userID string, limit
 
 
 func (r *linkRepository) UpdateSpecificLink(ctx context.Context, existingLink *model.Link) error {
-    query := `UPDATE links SET name = $1, url = $2, updated_at = $3 WHERE id = $4`
-    _, err := r.db.Exec(ctx, query, existingLink.Name, existingLink.Url, existingLink.UpdatedAt, existingLink.ID)
+    query := `UPDATE links SET name = $1, url = $2, updated_at = $3, label = $4 WHERE id = $5`
+    _, err := r.db.Exec(ctx, query, existingLink.Name, existingLink.Url, existingLink.UpdatedAt, existingLink.Label, existingLink.ID)
 
     if err != nil {
         return err
