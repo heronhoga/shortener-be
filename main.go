@@ -37,6 +37,8 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+
+
 	//api route
 	api := app.Group("/api/v1", middleware.JSONOnly())
 	
@@ -54,6 +56,9 @@ func main() {
 	linkHandler := handler.NewLinkHandler(linkService)
 	linkRoute := route.NewLinkRoute(linkHandler)
 	linkRoute.Register(api)
+
+	//main business - redirect
+	app.Get("/:name", linkHandler.RedirectLink)
 
 	// listen
 	app.Listen(":8000")

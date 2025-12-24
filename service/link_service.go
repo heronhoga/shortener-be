@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -52,6 +53,11 @@ func (s *LinkService) CreateShortLink(ctx context.Context, requests *model.Creat
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
 		return errors.New("Error parsing user id")
+	}
+
+	// normalize url - add http:// or https://
+	if !strings.HasPrefix(requests.Url, "http://") && !strings.HasPrefix(requests.Url, "https://") {
+		requests.Url = "https://" + requests.Url
 	}
 
 	// create new short link data
@@ -167,4 +173,16 @@ func (s *LinkService) DeleteLink(ctx context.Context, linkID string, userID stri
 		return err
 	}
 	return nil
+}
+
+func (s *LinkService) RedirectLink(ctx context.Context, linkName string) (string, error) {
+	url, err := s.repo.GetActualURL(ctx, linkName)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errors.New("data not found or unauthorized")
+		}
+		return "", err
+	}
+
+	return  url, nil
 }

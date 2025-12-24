@@ -116,6 +116,18 @@ func (h *LinkHandler) GetShortLink(c *fiber.Ctx) error {
 	})
 }
 
+func (h *LinkHandler) RedirectLink(c *fiber.Ctx) error {
+	linkName := c.Params("name")
+
+	url, err := h.service.RedirectLink(c.Context(), linkName)
+	if err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "link not found")
+	}
+
+	return c.Redirect(url, fiber.StatusTemporaryRedirect)
+}
+
+
 func (h *LinkHandler) DeleteLink(c *fiber.Ctx) error {
 	var req model.DeleteLink
 

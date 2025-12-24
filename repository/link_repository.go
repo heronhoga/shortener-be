@@ -16,6 +16,7 @@ type LinkRepository interface {
     UpdateSpecificLink(ctx context.Context, existingLink *model.Link) error
 	GetShortLinks(ctx context.Context, userId string, limit int, offset int) ([]*model.Link, error)
 	DeleteLink(ctx context.Context, linkID string, userID string) error 
+	GetActualURL(ctx context.Context, linkName string) (string, error)
 }
 
 type linkRepository struct {
@@ -140,3 +141,16 @@ func (r *linkRepository) DeleteLink(ctx context.Context, linkID string, userID s
 	return nil
 }
 
+func (r *linkRepository) GetActualURL(ctx context.Context, linkName string) (string, error) {
+	query := `SELECT url FROM links WHERE name = $1`
+
+	var url string
+
+	row := r.db.QueryRow(ctx, query, linkName)
+	err := row.Scan(&url)
+	if err != nil {
+		return "", err
+	}
+
+	return  url, nil
+}
