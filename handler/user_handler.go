@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"os"
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/heronhoga/shortener-be/model"
 	"github.com/heronhoga/shortener-be/service"
@@ -79,7 +82,34 @@ func (h *UserHandler) LoginUser(c *fiber.Ctx) error {
         })
     }
 
+    //get cookie configuration
+    cookieSecurity, err := strconv.ParseBool(os.Getenv("COOKIE_SECURITY"))
+
+    if err != nil {
+        return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+            "error": "Error parsing boolean value",
+        })
+    }
+
+    //set httpOnly token
+    c.Cookie(&fiber.Cookie{
+        Name: "access_token",
+        Value: token,
+        HTTPOnly: true,
+        Secure: cookieSecurity,
+        SameSite: fiber.CookieSameSiteLaxMode,
+        Path: "/",
+        MaxAge: 60 * 60 * 24,
+    })
+
     return c.Status(fiber.StatusOK).JSON(fiber.Map{
-        "token": token,
+        "message": "ok",
+    })
+}
+
+func (h *UserHandler) Me(c *fiber.Ctx) error {
+    userID := c.Locals("user_id")
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
+        "user_id": userID,
     })
 }
