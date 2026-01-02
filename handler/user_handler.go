@@ -107,6 +107,29 @@ func (h *UserHandler) LoginUser(c *fiber.Ctx) error {
     })
 }
 
+func (h *UserHandler) LogoutUser (c *fiber.Ctx) error {
+    cookieSecurity, err := strconv.ParseBool(os.Getenv("COOKIE_SECURITY"))
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "error": "Error parsing boolean value",
+        })
+    }
+
+    c.Cookie(&fiber.Cookie{
+        Name:     "access_token",
+        Value:    "",
+        HTTPOnly: true,
+        Secure:   cookieSecurity,
+        SameSite: fiber.CookieSameSiteLaxMode,
+        Path:     "/",
+        MaxAge:   -1, // delete cookie
+    })
+
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
+        "message": "logged out",
+    })
+}
+
 func (h *UserHandler) Me(c *fiber.Ctx) error {
     userID := c.Locals("user_id")
     return c.Status(fiber.StatusOK).JSON(fiber.Map{
